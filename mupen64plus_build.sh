@@ -40,7 +40,7 @@ export M64P_PATH=$BASE_DIR
 for dir in mupen64plus-*; do
   echo "Compilando $dir..."
   cd "$dir/projects/unix"
-  make -j$(nproc) all
+  make all -j$(nproc)
   cd ../../
 done
 
