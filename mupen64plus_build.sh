@@ -44,21 +44,19 @@ done
 
 export M64P_PATH=$BASE_DIR
 
-# Compilar repositorios - solo directorios reales
+# Compilar repos
 for dir in mupen64plus-*; do
-  if [ -d "$dir" ]; then
-    echo "Compilando $dir..."
-    cd "$BASE_DIR"
+  echo "Compilando $dir..."
+  cd "$BASE_DIR"
 
-    if [ -d "$dir/projects/unix" ] && [ -f "$dir/projects/unix/Makefile" ]; then
-      cd "$dir/projects/unix"
-      echo "Ejecutando make clean en $dir..."
-      make clean || true
-      echo "Compilando $dir con make all..."
-      make all -j$(nproc)
-    else
-      echo "⚠ No se encontró Makefile en $dir/projects/unix, saltando compilación."
-    fi
+  if [ -d "$dir/projects/unix" ] && [ -f "$dir/projects/unix/Makefile" ]; then
+    cd "$dir/projects/unix"
+    echo "Ejecutando make clean en $dir..."
+    make clean || true
+    echo "Compilando $dir con make all..."
+    make all -j$(nproc)
+  else
+    echo "⚠ No se encontró Makefile en $dir/projects/unix, saltando compilación."
   fi
 done
 
@@ -66,18 +64,15 @@ done
 read -p "¿Deseas instalar los binarios en /usr/local? (s/n): " INSTALAR
 
 if [[ "$INSTALAR" =~ ^[sS]$ ]]; then
-  # Instalar solo en directorios reales
   for dir in mupen64plus-*; do
-    if [ -d "$dir" ]; then
-      echo "Instalando $dir..."
-      cd "$BASE_DIR"
+    echo "Instalando $dir..."
+    cd "$BASE_DIR"
 
-      if [ -d "$dir/projects/unix" ] && [ -f "$dir/projects/unix/Makefile" ]; then
-        cd "$dir/projects/unix"
-        sudo make install
-      else
-        echo "⚠ No se encontró Makefile en $dir/projects/unix, saltando instalación."
-      fi
+    if [ -d "$dir/projects/unix" ] && [ -f "$dir/projects/unix/Makefile" ]; then
+      cd "$dir/projects/unix"
+      sudo make install
+    else
+      echo "⚠ No se encontró Makefile en $dir/projects/unix, saltando instalación."
     fi
   done
 fi
