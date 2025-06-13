@@ -28,6 +28,7 @@ REPOS=(
   "https://github.com/mupen64plus/mupen64plus-rsp-hle.git"
 )
 
+# Clonar o actualizar repositorios
 for REPO in "${REPOS[@]}"; do
   REPO_NAME=$(basename "$REPO" .git)
   if [ ! -d "$REPO_NAME" ]; then
@@ -37,36 +38,31 @@ for REPO in "${REPOS[@]}"; do
     echo "Repositorio $REPO_NAME ya existe, actualizando..."
     cd "$REPO_NAME"
     git pull
-    cd ..
+    cd "$BASE_DIR"
   fi
 done
 
 export M64P_PATH=$BASE_DIR
 
+# Compilar repos
 for dir in mupen64plus-*; do
   echo "Compilando $dir..."
-  cd "$dir"
-  
+
+  cd "$BASE_DIR"  # Volver siempre a base antes de cada compilación
+
   if [ "$dir" == "mupen64plus-core" ]; then
-    # Compilar en la raíz (donde está el Makefile)
-    if [ -f Makefile ]; then
+    if [ -f "$dir/Makefile" ]; then
+      cd "$dir"
       make clean || true
       make all -j$(nproc)
     else
       echo "⚠ No se encontró Makefile en $dir, saltando compilación."
     fi
-    cd ..
   else
-    # Para los otros, compilar en projects/unix
-    if [ -d "projects/unix" ]; then
-      cd projects/unix
-      if [ -f Makefile ]; then
-        make clean || true
-        make all -j$(nproc)
-      else
-        echo "⚠ No se encontró Makefile en $dir/projects/unix, saltando."
-      fi
-      cd ../../
+    if [ -d "$dir/projects/unix" ]; then
+      cd "$dir/projects/unix"
+      make clean || true
+      make all -j$(nproc)
     else
       echo "⚠ No existe carpeta projects/unix en $dir, saltando."
     fi
@@ -78,20 +74,20 @@ read -p "¿Deseas instalar los binarios en /usr/local? (s/n): " INSTALAR
 if [[ "$INSTALAR" =~ ^[sS]$ ]]; then
   for dir in mupen64plus-*; do
     echo "Instalando $dir..."
-    cd "$dir"
-    
+
+    cd "$BASE_DIR"  # Volver siempre a base antes de instalación
+
     if [ "$dir" == "mupen64plus-core" ]; then
-      if [ -f Makefile ]; then
+      if [ -f "$dir/Makefile" ]; then
+        cd "$dir"
         sudo make install
       else
         echo "⚠ No se encontró Makefile en $dir, saltando instalación."
       fi
-      cd ..
     else
-      if [ -d "projects/unix" ] && [ -f "projects/unix/Makefile" ]; then
-        cd projects/unix
+      if [ -d "$dir/projects/unix" ] && [ -f "$dir/projects/unix/Makefile" ]; then
+        cd "$dir/projects/unix"
         sudo make install
-        cd ../../
       else
         echo "⚠ No se pudo instalar $dir (Makefile o carpeta no encontrada)."
       fi
