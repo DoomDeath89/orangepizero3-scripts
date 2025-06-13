@@ -10,7 +10,7 @@ if ! command -v sudo &> /dev/null; then
 fi
 
 sudo apt update
-sudo apt install -y build-essential git libsdl2-dev libpng-dev libfreetype6-dev nasm \
+sudo apt install -y libvulkan-dev vulkan-utils build-essential git libsdl2-dev libpng-dev libfreetype6-dev nasm \
   libglib2.0-dev libxi-dev libxext-dev libxrandr-dev libasound2-dev libpulse-dev \
   libspeexdsp-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev cmake
 
