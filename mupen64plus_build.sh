@@ -65,16 +65,20 @@ read -p "¿Deseas instalar los binarios en /usr/local? (s/n): " INSTALAR
 
 if [[ "$INSTALAR" =~ ^[sS]$ ]]; then
   for dir in mupen64plus-*; do
-    echo "Instalando $dir..."
-    cd "$BASE_DIR"
+    echo "Procesando módulo: $dir..."
+    
+    PROJECTS_DIR="$BASE_DIR/$dir/projects/unix"
 
-    if [ -d "$dir/projects/unix" ] && [ -f "$dir/projects/unix/Makefile" ]; then
-      cd "$dir/projects/unix"
+    if [ -d "$PROJECTS_DIR" ] && [ -f "$PROJECTS_DIR/Makefile" ]; then
+      echo "Instalando $dir..."
+      cd "$PROJECTS_DIR"
       sudo make install
     else
-      echo "⚠ No se encontró Makefile en $dir/projects/unix, saltando instalación."
+      echo "⚠ No se encontró Makefile en $PROJECTS_DIR, saltando instalación."
     fi
   done
+else
+  echo "Instalación cancelada."
 fi
 
 echo "✅ Mupen64Plus compilado e instalado exitosamente en ARM64."
