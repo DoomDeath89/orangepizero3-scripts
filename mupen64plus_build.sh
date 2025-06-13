@@ -65,16 +65,20 @@ read -p "¿Deseas instalar los binarios en /usr/local? (s/n): " INSTALAR
 
 if [[ "$INSTALAR" =~ ^[sS]$ ]]; then
   for dir in mupen64plus-*; do
-    echo "Procesando módulo: $dir..."
-    
-    PROJECTS_DIR="$BASE_DIR/$dir/projects/unix"
+    if [ -d "$BASE_DIR/$dir" ]; then   # <-- Filtramos sólo los directorios válidos
+      echo "Procesando módulo: $dir..."
+      
+      PROJECTS_DIR="$BASE_DIR/$dir/projects/unix"
 
-    if [ -d "$PROJECTS_DIR" ] && [ -f "$PROJECTS_DIR/Makefile" ]; then
-      echo "Instalando $dir..."
-      cd "$PROJECTS_DIR"
-      sudo make install
+      if [ -d "$PROJECTS_DIR" ] && [ -f "$PROJECTS_DIR/Makefile" ]; then
+        echo "Instalando $dir..."
+        cd "$PROJECTS_DIR"
+        sudo make install
+      else
+        echo "⚠ No se encontró Makefile en $PROJECTS_DIR, saltando instalación."
+      fi
     else
-      echo "⚠ No se encontró Makefile en $PROJECTS_DIR, saltando instalación."
+      echo "⚠ $dir no es un directorio, se omite."
     fi
   done
 else
