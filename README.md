@@ -22,6 +22,14 @@ Este repositorio está dedicado a documentar, desarrollar y compartir **scripts,
 
 Usuarios de Orange Pi Zero 3, entusiastas de SBC (Single Board Computers), desarrolladores ARM64 y cualquier persona buscando mejorar el rendimiento o estabilidad de su sistema en esta plataforma.
 
+## Instalación
+
+git clone https://github.com/DoomDeath89/orangepizero3-scripts.git
+cd orangepizero3-scripts
+chmod +x bootstrap_installer.sh
+sudo ./bootstrap_installer.sh
+
+
 ## Notas
 
 > Este proyecto es comunitario y está en constante evolución.  
