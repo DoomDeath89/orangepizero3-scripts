@@ -45,17 +45,31 @@ export M64P_PATH=$BASE_DIR
 
 for dir in mupen64plus-*; do
   echo "Compilando $dir..."
-  if [ -d "$dir/projects/unix" ]; then
-    cd "$dir/projects/unix"
+  cd "$dir"
+  
+  if [ "$dir" == "mupen64plus-core" ]; then
+    # Compilar en la raíz (donde está el Makefile)
     if [ -f Makefile ]; then
       make clean || true
       make all -j$(nproc)
     else
-      echo "⚠ No se encontró Makefile en $dir/projects/unix, saltando compilación."
+      echo "⚠ No se encontró Makefile en $dir, saltando compilación."
     fi
-    cd ../../
+    cd ..
   else
-    echo "⚠ No existe carpeta projects/unix en $dir, saltando compilación."
+    # Para los otros, compilar en projects/unix
+    if [ -d "projects/unix" ]; then
+      cd projects/unix
+      if [ -f Makefile ]; then
+        make clean || true
+        make all -j$(nproc)
+      else
+        echo "⚠ No se encontró Makefile en $dir/projects/unix, saltando."
+      fi
+      cd ../../
+    else
+      echo "⚠ No existe carpeta projects/unix en $dir, saltando."
+    fi
   fi
 done
 
@@ -63,17 +77,24 @@ read -p "¿Deseas instalar los binarios en /usr/local? (s/n): " INSTALAR
 
 if [[ "$INSTALAR" =~ ^[sS]$ ]]; then
   for dir in mupen64plus-*; do
-    if [ -d "$dir/projects/unix" ]; then
-      cd "$dir/projects/unix"
+    echo "Instalando $dir..."
+    cd "$dir"
+    
+    if [ "$dir" == "mupen64plus-core" ]; then
       if [ -f Makefile ]; then
-        echo "Instalando $dir..."
         sudo make install
       else
-        echo "⚠ No se encontró Makefile para instalación en $dir/projects/unix."
+        echo "⚠ No se encontró Makefile en $dir, saltando instalación."
       fi
-      cd ../../
+      cd ..
     else
-      echo "⚠ No existe carpeta projects/unix en $dir, saltando instalación."
+      if [ -d "projects/unix" ] && [ -f "projects/unix/Makefile" ]; then
+        cd projects/unix
+        sudo make install
+        cd ../../
+      else
+        echo "⚠ No se pudo instalar $dir (Makefile o carpeta no encontrada)."
+      fi
     fi
   done
 fi
