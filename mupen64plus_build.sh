@@ -44,30 +44,39 @@ done
 
 export M64P_PATH=$BASE_DIR
 
-# Compilar repos
-for dir in mupen64plus-*; do
-  echo "Compilando $dir..."
-  cd "$BASE_DIR"
+# Preguntar si desea compilar
+read -p "¿Deseas compilar los módulos? (s/n): " COMPILAR
 
-  if [ -d "$dir/projects/unix" ] && [ -f "$dir/projects/unix/Makefile" ]; then
-    cd "$dir/projects/unix"
-    echo "Ejecutando make clean en $dir..."
-    make clean || true
-    echo "Compilando $dir con make all..."
-    make all -j$(nproc)
-  else
-    echo "⚠ No se encontró Makefile en $dir/projects/unix, saltando compilación."
-  fi
-done
+if [[ "$COMPILAR" =~ ^[sS]$ ]]; then
+  for dir in mupen64plus-*; do
+    if [ -d "$dir" ]; then
+      echo "Compilando $dir..."
+      PROJECTS_DIR="$BASE_DIR/$dir/projects/unix"
+
+      if [ -d "$PROJECTS_DIR" ] && [ -f "$PROJECTS_DIR/Makefile" ]; then
+        cd "$PROJECTS_DIR"
+        echo "Ejecutando make clean en $dir..."
+        make clean || true
+        echo "Compilando $dir con make all..."
+        make all -j$(nproc)
+      else
+        echo "⚠ No se encontró Makefile en $PROJECTS_DIR, saltando compilación."
+      fi
+    else
+      echo "⚠ $dir no es un directorio, se omite."
+    fi
+  done
+else
+  echo "Compilación cancelada."
+fi
 
 # Preguntar si desea instalar
 read -p "¿Deseas instalar los binarios en /usr/local? (s/n): " INSTALAR
 
 if [[ "$INSTALAR" =~ ^[sS]$ ]]; then
   for dir in mupen64plus-*; do
-    if [ -d "$BASE_DIR/$dir" ]; then   # <-- Filtramos sólo los directorios válidos
+    if [ -d "$dir" ]; then
       echo "Procesando módulo: $dir..."
-      
       PROJECTS_DIR="$BASE_DIR/$dir/projects/unix"
 
       if [ -d "$PROJECTS_DIR" ] && [ -f "$PROJECTS_DIR/Makefile" ]; then
@@ -85,4 +94,4 @@ else
   echo "Instalación cancelada."
 fi
 
-echo "✅ Mupen64Plus compilado e instalado exitosamente en ARM64."
+echo "✅ Proceso finalizado correctamente en ARM64."
