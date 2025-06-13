@@ -2,6 +2,17 @@
 
 set -e
 
+# Instalar dependencias necesarias para compilar mupen64plus en ARM64
+echo "🔄 Actualizando repositorios e instalando dependencias..."
+if ! command -v sudo &> /dev/null; then
+  echo "❗ No se encontró sudo. Ejecuta este script con root o instala sudo."
+  exit 1
+fi
+
+sudo apt update
+sudo apt install -y build-essential git libsdl2-dev libpng-dev libfreetype6-dev nasm \
+  libglib2.0-dev libxi-dev libxext-dev libxrandr-dev libasound2-dev libpulse-dev
+
 # Carpeta base donde vamos a clonar los repos
 BASE_DIR=$HOME/mupen64plus-arm64
 
