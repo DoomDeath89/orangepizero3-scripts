@@ -37,8 +37,8 @@ echo ""
 echo "¿Deseas ejecutar alguno de los scripts ahora?"
 select opcion in "${SCRIPTS[@]}" "Salir"; do
   case $REPLY in
-    1|2|3) ./"${SCRIPTS[$REPLY-1]}"; break ;;
-    4) echo "Saliendo."; break ;;
+    1|2|3|4) ./"${SCRIPTS[$REPLY-1]}"; break ;;
+    5) echo "Saliendo."; break ;;
     *) echo "Opción inválida." ;;
   esac
 done
