@@ -1,13 +1,20 @@
 #!/bin/bash
 
-REAL_USER_HOME=$(eval echo "~$SUDO_USER")
-CARPETA="${REAL_USER_HOME:-$HOME}/emuladores"
+# Detectar usuario real
+if [ -n "$SUDO_USER" ]; then
+  REAL_USER="$SUDO_USER"
+else
+  REAL_USER="$USER"
+fi
+REAL_USER_HOME=$(eval echo "~$REAL_USER")
+
+CARPETA="$REAL_USER_HOME/emuladores"
 APPIMAGE="DuckStation-arm64.AppImage"
 ESCRITORIO="$REAL_USER_HOME/.local/share/applications/juegos/duckstation.desktop"
 ICONO_URL="https://raw.githubusercontent.com/DoomDeath89/orangepizero3-scripts/new_scrips/icons/Logo_Duckstation.svg.png"
 ICONO="$REAL_USER_HOME/.local/share/icons/duckstation.png"
 
-echo "Usuario real: $SUDO_USER"
+echo "Usuario real: $REAL_USER"
 echo "Home real: $REAL_USER_HOME"
 
 echo "📁 Creando carpeta: $CARPETA"
@@ -43,12 +50,16 @@ Comment=PlayStation 1 emulator
 Terminal=false
 EOF
 
-chmod +x "$ESCRITORIO"
-chown "$SUDO_USER":"$SUDO_USER" "$ESCRITORIO" "$ICONO"
+# chmod 644 para archivos .desktop es suficiente
+chmod 644 "$ESCRITORIO"
 
-# Actualizar bases de datos
-sudo -u "$SUDO_USER" update-desktop-database "$REAL_USER_HOME/.local/share/applications" >/dev/null 2>&1 || true
-sudo -u "$SUDO_USER" gtk-update-icon-cache "$REAL_USER_HOME/.local/share/icons" >/dev/null 2>&1 || true
+# Cambiar dueño solo si el script fue corrido con sudo
+if [ "$REAL_USER" != "$USER" ]; then
+  chown "$REAL_USER":"$REAL_USER" "$ESCRITORIO" "$ICONO"
+fi
 
 echo "✅ DuckStation instalado en $CARPETA y accesible desde el menú."
 echo "🎮 Ejecuta desde el menú o manualmente con: $CARPETA/$APPIMAGE"
+
+# Mensaje para refrescar sesión o entorno gráfico
+echo "ℹ️ Si no ves DuckStation en el menú, prueba a cerrar y abrir sesión o reiniciar tu entorno gráfico."
