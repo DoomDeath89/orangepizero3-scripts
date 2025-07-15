@@ -5,8 +5,8 @@ REAL_USER_HOME=$(eval echo "~$SUDO_USER")
 CARPETA="${REAL_USER_HOME:-$HOME}/emuladores"
 APPIMAGE="DuckStation-arm64.AppImage"
 ESCRITORIO="$REAL_USER_HOME/.local/share/applications/juegos/duckstation.desktop"
-ICONO_URL="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_Duckstation.svg/2048px-Logo_Duckstation.svg.png"
-ICONO_URL="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Logo_Duckstation.svg/2048px-Logo_Duckstation.svg.png"
+ICONO_URL="https://raw.githubusercontent.com/DoomDeath89/orangepizero3-scripts/new_scrips/icons/Logo_Duckstation.svg.png"
+
 
 ICONO="$REAL_USER_HOME/.local/share/icons/duckstation.png"
 
