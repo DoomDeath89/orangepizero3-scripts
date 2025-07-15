@@ -6,19 +6,6 @@
 
 set -e
 
-REPO_URL="https://github.com/DoomDeath89/orangepizero3-scripts.git"
-CLONE_DIR="$HOME/orangepizero3-scripts"
-
-echo "📦 Clonando utilidades desde $REPO_URL..."
-if [ -d "$CLONE_DIR" ]; then
-  echo "⚠ El directorio ya existe. Eliminando..."
-  rm -rf "$CLONE_DIR"
-fi
-
-git clone --depth=1 "$REPO_URL" "$CLONE_DIR"
-
-cd "$CLONE_DIR"
-
 # Lista de scripts a preparar
 SCRIPTS=(
   "audio_setup.sh"
