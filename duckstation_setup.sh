@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Obtener el home del usuario real (en caso de usar sudo)
 REAL_USER_HOME=$(eval echo "~$SUDO_USER")
 CARPETA="${REAL_USER_HOME:-$HOME}/emuladores"
 APPIMAGE="DuckStation-arm64.AppImage"
 ESCRITORIO="$REAL_USER_HOME/.local/share/applications/juegos/duckstation.desktop"
 ICONO_URL="https://raw.githubusercontent.com/DoomDeath89/orangepizero3-scripts/new_scrips/icons/Logo_Duckstation.svg.png"
-
-
 ICONO="$REAL_USER_HOME/.local/share/icons/duckstation.png"
+
+echo "Usuario real: $SUDO_USER"
+echo "Home real: $REAL_USER_HOME"
 
 echo "📁 Creando carpeta: $CARPETA"
 mkdir -p "$CARPETA"
@@ -44,8 +44,9 @@ Terminal=false
 EOF
 
 chmod +x "$ESCRITORIO"
+chown "$SUDO_USER":"$SUDO_USER" "$ESCRITORIO" "$ICONO"
 
-# Actualizar bases de datos de íconos y accesos
+# Actualizar bases de datos
 sudo -u "$SUDO_USER" update-desktop-database "$REAL_USER_HOME/.local/share/applications" >/dev/null 2>&1 || true
 sudo -u "$SUDO_USER" gtk-update-icon-cache "$REAL_USER_HOME/.local/share/icons" >/dev/null 2>&1 || true
 
