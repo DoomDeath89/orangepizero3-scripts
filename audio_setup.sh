@@ -1,61 +1,54 @@
 #!/bin/bash
 
-# Script Full Cleanup: Elimina completamente PulseAudio y PipeWire (64-bit y 32-bit)
-# y configura ALSA puro con HDMI y dmix.
-# Ideal para Orange Pi Zero 3 y otros dispositivos ARM.
+# Script Full: Configuración de audio optimizada para Orange Pi Zero 3 (HDMI, ALSA puro)
+# Elimina pulseaudio, pipewire y configura dmix para permitir múltiples aplicaciones simultáneas.
 
 ASOUND_FILE="$HOME/.asoundrc"
 
-# Función para desinstalar todos los paquetes relacionados con PulseAudio y PipeWire
-purge_audio_servers() {
-    echo "🔎 Eliminando paquetes relacionados con PulseAudio y PipeWire (todos los arquitecturas)..."
-
-    sudo systemctl --user stop pipewire pipewire.socket pipewire-pulse pulseaudio pulseaudio.socket 2>/dev/null
-    sudo systemctl --user disable pipewire pipewire.socket pipewire-pulse pulseaudio pulseaudio.socket 2>/dev/null
-
-    sudo apt purge -y \
-        'pipewire*' \
-        'pulseaudio*' \
-        'libpipewire-*' \
-        'libpulse*' \
-        'libpulsedsp*' \
-        'libspa-0.2-*' \
-        'osspd-pulseaudio*'
-
-    sudo dpkg -P $(dpkg -l | awk '/pipewire|pulseaudio/ && /:i386|:armhf/ {print $2}') 2>/dev/null
-
-    echo "🧹 Limpiando configuraciones de usuario..."
-    rm -rf ~/.config/pipewire ~/.config/pulse ~/.pulse* ~/.asoundrc
-
-    echo "🧼 Limpiando el sistema..."
-    sudo apt autoremove --purge -y
-    sudo apt clean
-
-    echo "✅ Todos los paquetes relacionados con PulseAudio y PipeWire han sido purgados."
+# Función para desinstalar pulseaudio si existe
+remove_pulseaudio() {
+    echo "🔎 Verificando si PulseAudio está instalado..."
+    if command -v pulseaudio >/dev/null 2>&1; then
+        echo "⚠ PulseAudio detectado. Procediendo a desinstalar..."
+        sudo systemctl --user stop pulseaudio.socket pulseaudio.service 2>/dev/null
+        sudo systemctl --user disable pulseaudio.socket pulseaudio.service 2>/dev/null
+        sudo apt-get remove --purge -y pulseaudio
+        sudo apt-get autoremove -y
+        rm -rf ~/.config/pulse
+        echo "✅ PulseAudio desinstalado correctamente."
+    else
+        echo "✅ PulseAudio no está instalado."
+    fi
 }
 
-# Quitar arquitecturas innecesarias (opcional)
-remove_architectures() {
-    echo "🔧 Verificando arquitecturas habilitadas..."
-    for arch in i386 armhf; do
-        if dpkg --print-foreign-architectures | grep -q "$arch"; then
-            echo "❌ Eliminando soporte para arquitectura $arch..."
-            sudo dpkg --remove-architecture $arch
-        fi
-    done
+# Función para desinstalar pipewire si existe
+remove_pipewire() {
+    echo "🔎 Verificando si PipeWire está instalado..."
+    if command -v pipewire >/dev/null 2>&1; then
+        echo "⚠ PipeWire detectado. Procediendo a desinstalar..."
+        sudo systemctl --user stop pipewire pipewire-pulse 2>/dev/null
+        sudo systemctl --user disable pipewire pipewire-pulse 2>/dev/null
+        sudo apt-get remove --purge -y pipewire pipewire-audio-client-libraries
+        sudo apt-get autoremove -y
+        rm -rf ~/.config/pipewire
+        echo "✅ PipeWire desinstalado correctamente."
+    else
+        echo "✅ PipeWire no está instalado."
+    fi
 }
 
-# Verificar presencia de tarjeta HDMI (card 1)
+# Verificamos que la tarjeta HDMI esté presente
 verify_hdmi() {
     echo "🔎 Detectando tarjetas de sonido..."
     aplay -l
+
     if ! aplay -l | grep -q "card 1.*HDMI"; then
         echo "⚠ No se detecta tarjeta HDMI en card 1. Verifica manualmente con 'aplay -l'"
         exit 1
     fi
 }
 
-# Generar configuración ALSA con dmix
+# Generar el archivo .asoundrc con dmix optimizado
 generate_asoundrc() {
     echo "🔧 Generando configuración ALSA optimizada en $ASOUND_FILE"
     cat > "$ASOUND_FILE" << EOF
@@ -88,18 +81,18 @@ EOF
     echo "✅ Archivo .asoundrc generado correctamente."
 }
 
-# Prueba de audio
+# Probar el audio
 test_audio() {
     echo "🔊 Realizando prueba de audio con speaker-test..."
     speaker-test -D default -c 2 -t wav -l 1
 }
 
-# Ejecución principal
-purge_audio_servers
-remove_architectures
+# Ejecutar las funciones
+remove_pulseaudio
+remove_pipewire
 verify_hdmi
 generate_asoundrc
 test_audio
 
-echo "✅ Configuración de audio ALSA finalizada."
-echo "ℹ Reinicia el sistema para asegurar que todo funcione correctamente sin PulseAudio ni PipeWire."
+echo "✅ Configuración de audio ALSA finalizada. El sistema está listo para usar múltiples aplicaciones de audio simultáneamente."
+echo "ℹ Si algo falla, reinicia el sistema para asegurar que los servicios eliminados no se reactiven."
