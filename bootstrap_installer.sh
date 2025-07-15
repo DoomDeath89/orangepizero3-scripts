@@ -11,6 +11,7 @@ SCRIPTS=(
   "audio_setup.sh"
   "lxde_installer.sh"
   "mupen64plus_build.sh"
+  "duckstation_setup.sh"
 )
 
 # Dar permisos de ejecución
