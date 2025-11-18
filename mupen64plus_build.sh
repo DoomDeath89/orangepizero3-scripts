@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+# Evitar que los globs sin coincidencias devuelvan la cadena literal
+shopt -s nullglob
+
+# Capturar señales para limpiado simple
+trap 'error "Interrumpido por señal"; exit 1' INT TERM
+
 # Colores para la salida
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -23,21 +29,26 @@ if [ "$ARCH" != "aarch64" ]; then
   [[ "$CONTINUAR" =~ ^[sS]$ ]] || error "Ejecución cancelada"
 fi
 
-# Verificar sudo
-if ! command -v sudo &> /dev/null; then
-  if [ "$(id -u)" -eq 0 ]; then
-    sudo() { "$@"; } # Si ya somos root, sudo es redundante
-  else
-    error "sudo no encontrado y no se está ejecutando como root"
-  fi
+# Determinar comando sudo (vacío si ya somos root)
+if command -v sudo >/dev/null 2>&1; then
+  SUDO_CMD=sudo
+elif [ "$(id -u)" -eq 0 ]; then
+  SUDO_CMD=""
+else
+  error "sudo no encontrado y no se está ejecutando como root"
 fi
 
 # Instalar dependencias
-info "🔄 Actualizando e instalando dependencias..."
-sudo apt update && sudo apt install -y \
-  libvulkan-dev build-essential git libsdl2-dev libpng-dev libfreetype6-dev nasm \
-  libglib2.0-dev libxi-dev libxext-dev libxrandr-dev libasound2-dev libpulse-dev \
-  libspeexdsp-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev cmake || error "Fallo al instalar dependencias"
+if command -v apt >/dev/null 2>&1; then
+  info "🔄 Actualizando e instalando dependencias..."
+  export DEBIAN_FRONTEND=noninteractive
+  $SUDO_CMD apt update && $SUDO_CMD DEBIAN_FRONTEND=noninteractive apt install -y \
+    libvulkan-dev build-essential git libsdl2-dev libpng-dev libfreetype6-dev nasm \
+    libglib2.0-dev libxi-dev libxext-dev libxrandr-dev libasound2-dev libpulse-dev \
+    libspeexdsp-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev cmake || error "Fallo al instalar dependencias"
+else
+  warning "Gestor de paquetes 'apt' no encontrado. Instala dependencias manualmente."
+fi
 
 # Configurar directorio base
 BASE_DIR="$HOME/mupen64plus-arm64"
@@ -70,6 +81,13 @@ done
 
 export M64P_PATH="$BASE_DIR"
 
+# Número de jobs para make (fallback a 1 si no existe nproc)
+if command -v nproc >/dev/null 2>&1; then
+  JOBS=$(nproc)
+else
+  JOBS=1
+fi
+
 # Función para compilar módulos
 compile_modules() {
   local failed=0
@@ -82,7 +100,7 @@ compile_modules() {
         cd projects/unix || { warning "No se pudo acceder a projects/unix"; ((failed++)); cd "$BASE_DIR"; continue; }
         
         make clean || true
-        if make all -j$(nproc); then
+        if make all -j"$JOBS"; then
           success "$dir compilado correctamente"
         else
           warning "Fallo al compilar $dir"
@@ -110,7 +128,7 @@ install_modules() {
         info "Instalando $dir..."
         cd projects/unix || { warning "No se pudo acceder a projects/unix"; ((failed++)); cd "$BASE_DIR"; continue; }
         
-        if sudo make install; then
+        if $SUDO_CMD make install; then
           success "$dir instalado correctamente"
         else
           warning "Fallo al instalar $dir"
